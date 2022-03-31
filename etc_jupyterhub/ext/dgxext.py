@@ -4,7 +4,7 @@
 import asyncio
 import batchspawner
 import wrapspawner
-from traitlets import Integer, Unicode, Float, Dict, default
+from traitlets import Integer, Unicode, Float, Dict, default, List
 
 class PyxisSpawner(batchspawner.SlurmSpawner):
 
@@ -49,25 +49,35 @@ echo "jupyterhub-singleuser ended gracefully"
         return ret
 
 class PyxisFormSpawner(wrapspawner.WrapSpawner):
-    def _options_form_default(self):
-        container_options = []
+
+    container_options = List(Unicode())
+
+    @default('container_options')
+    def _default_container_options(self):
+        opts = []
         for l in open("/etc/jupyterhub/container_whitelist.tsv"):
-            a, b, c = l.split("\t")
-            txt = a+"#"+b+":"+c
-            container_options.append('<option value={}>{}</option>'.format(txt,txt))
+            v1, v2, v3 = l.rstrip().split("\t")
+            txt = v1+"#"+v2+":"+v3
+            opts.append(txt)
+        return opts
+
+    def _options_form_default(self):
+        opts = []
+        for l in self.container_options:
+            opts.append('<option value={}>{}</option>'.format(l,l))
         return """
         <div class="form-group">
-            <label for="cores">Cores . . . range: 1 ~ 32</label>
+            <label for="cores">Cores: . . . range: 1 ~ 32</label>
             <input type="number" name="cores" class="form-control slurm-var"
                 placeholder="1" min="1" max="32"></input>
         </div>
         <div class="form-group">
-            <label for="mem">Memory (GB) . . . range: 2 ~ 120</label>
+            <label for="mem">Memory (GB): . . . range: 2 ~ 120</label>
             <input type="number" name="mem_gb" class="form-control slurm-var" 
                placeholder="2" min="2" max="120"></input>
         </div>
         <div class="form-group">
-            <label for="container_image">Container Image</label>
+            <label for="container_image">Container Image:</label>
             <select name='container_image' class='form-control slurm-var'>
             {container_options}
             </select>
@@ -79,7 +89,7 @@ class PyxisFormSpawner(wrapspawner.WrapSpawner):
             <option value='1'>1x A100 40GB</option>
             </select>
         </div>
-        """.format(container_options="\n".join(container_options))
+        """.format(container_options="\n".join(opts))
 
     def options_from_form(self, formdata):
         options = {}
@@ -105,8 +115,11 @@ class PyxisFormSpawner(wrapspawner.WrapSpawner):
         options = self.sanitize_opt_int(options, 'mem_gb', '2', 1, 120)
         options = self.sanitize_opt_int(options, 'n_gpus', '0', 0, 1)
 
+        print(options)
         if 'container_image' not in options:
-            options['container_image'] = ''
+            options['container_image'] = self.container_options[0]
+        elif options['container_image'] not in self.container_options:
+            options['container_image'] = self.container_options[0]
 
         return options
 
