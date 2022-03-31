@@ -8,11 +8,11 @@ from traitlets import Integer, Unicode, Float, Dict, default
 
 class PyxisSpawner(batchspawner.SlurmSpawner):
 
-    # Pyxis does not support --export
+    # Pyxis does not support slurm --export option
     batch_script = Unicode(
 """#!/bin/bash
-#SBATCH --output={{homedir}}/jupyterhub_slurmspawner_%j.log
-#SBATCH --job-name=spawner-jupyterhub
+#SBATCH --output={{homedir}}/jupyter_dgx_%j.log
+#SBATCH --job-name=jupyter-dgx
 #SBATCH --chdir={{homedir}}
 #SBATCH --get-user-env=L
 {% if partition  %}#SBATCH --partition={{partition}}
@@ -87,35 +87,27 @@ class PyxisFormSpawner(wrapspawner.WrapSpawner):
           options[k] = formdata[k][0]
         return options
 
+    def sanitize_opt_int(self, options, key, default, vmin, vmax):
+        if key in options:
+            if options[key].isdigit():
+                val = int(options[key])
+                if val < vmin or val > vmax:
+                    options[key] = default
+            else:
+                options[key] = default
+        else:
+            options[key] = default
+        return options
+
     def sanitize_options(self, options):
-        if 'cores' in options:
-            if options['cores'].isdigit():
-                c = int(options['cores'])
-                if c < 1 or c > 32:
-                    options['cores'] = '1'
-            else:
-                options['cores'] = '1'
-        else:
-            options['cores'] = '1'
-        if 'mem_gb' in options:
-            if options['mem_gb'].isdigit():
-                c = int(options['mem_gb'])
-                if c < 1 or c > 120:
-                    options['mem_gb'] = '2'
-            else:
-                options['mem_gb'] = '2'
-        else:
-            options['mem_gb'] = '2'
+
+        options = self.sanitize_opt_int(options, 'cores', '1', 1, 32)
+        options = self.sanitize_opt_int(options, 'mem_gb', '2', 1, 120)
+        options = self.sanitize_opt_int(options, 'n_gpus', '0', 0, 1)
+
         if 'container_image' not in options:
             options['container_image'] = ''
 
-        if 'n_gpus' in options:
-            if options['n_gpus'].isdigit():
-                c = int(options['n_gpus'])
-                if c < 0 or c > 1:
-                    options['n_gpus'] = '0'
-        else:
-            options['n_gpus'] = '0'
         return options
 
     def set_child_options(self, options):
