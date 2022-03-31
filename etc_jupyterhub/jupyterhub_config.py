@@ -635,7 +635,7 @@ c.JupyterHub.redirect_to_server = False
 #c.JupyterHub.spawner_class = 'jupyterhub.spawner.LocalProcessSpawner'
 
 
-# interface customizada para iniciar notebook no slurm-pyxis
+# custom interface for DGX-pyxis-slurm setup
 import sys
 sys.path.insert(1,'/etc/jupyterhub/ext')
 import dgxext

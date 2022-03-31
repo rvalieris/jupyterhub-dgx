@@ -1,5 +1,5 @@
 
-# interface customizada para iniciar notebook no slurm-pyxis
+# custom interface for DGX-pyxis-slurm setup
 
 import asyncio
 import batchspawner
@@ -109,14 +109,24 @@ class PyxisFormSpawner(wrapspawner.WrapSpawner):
         if 'container_image' not in options:
             options['container_image'] = ''
 
+        if 'n_gpus' in options:
+            if options['n_gpus'].isdigit():
+                c = int(options['n_gpus'])
+                if c < 0 or c > 1:
+                    options['n_gpus'] = '0'
+        else:
+            options['n_gpus'] = '0'
         return options
 
     def set_child_options(self, options):
         options = self.sanitize_options(options)
         self.child_class = PyxisSpawner
         self.child_config = {
-          'req_nprocs': options['cores'], 'req_srun': '',
-          'req_runtime':'0', 'req_memory': options['mem_gb']+'G',
+          'req_nprocs': options['cores'],
+          'req_srun': '',
+          'req_runtime':'0',
+          'req_ngpus': options['n_gpus'],
+          'req_memory': options['mem_gb']+'G',
           'req_containerimage': options['container_image'],
           #'req_containermounts': '/raid:/raid',
           'batch_submit_cmd': 'sbatch --parsable --no-requeue',
