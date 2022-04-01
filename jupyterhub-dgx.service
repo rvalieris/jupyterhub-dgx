@@ -1,0 +1,24 @@
+[Unit]
+Description=JupyterHub DGX
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=root
+Restart=always
+TimeoutSec=300
+ExecStartPre=-/usr/bin/docker stop %N
+ExecStartPre=-/usr/bin/docker rm %N
+ExecStartPre=/usr/bin/docker build /etc/jupyterhub/image --tag %N
+ExecStart=/usr/bin/docker run --rm --network host --name %N \
+    -v /etc:/etc:ro \
+    -v /usr/local/lib/slurm:/usr/local/lib/slurm:ro \
+    -v /usr/local/src/pyxis:/usr/local/src/pyxis:ro \
+    -v /var/run/munge:/var/run/munge:ro \
+    -v /usr/local/bin/sbatch:/usr/local/bin/sbatch \
+    -v /usr/local/bin/scancel:/usr/local/bin/scancel \
+    -v /usr/local/bin/squeue:/usr/local/bin/squeue \
+    %N
+
+[Install]
+WantedBy=multi-user.target

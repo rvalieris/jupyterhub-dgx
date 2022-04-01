@@ -115,7 +115,6 @@ class PyxisFormSpawner(wrapspawner.WrapSpawner):
         options = self.sanitize_opt_int(options, 'mem_gb', '2', 1, 120)
         options = self.sanitize_opt_int(options, 'n_gpus', '0', 0, 1)
 
-        print(options)
         if 'container_image' not in options:
             options['container_image'] = self.container_options[0]
         elif options['container_image'] not in self.container_options:
