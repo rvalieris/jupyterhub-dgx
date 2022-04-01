@@ -134,7 +134,9 @@ class PyxisFormSpawner(wrapspawner.WrapSpawner):
           'req_containerimage': options['container_image'],
           'req_containermounts': '/raid:/raid',
           'batch_submit_cmd': 'sbatch --parsable --no-requeue',
-          'req_prologue': 'pip install batchspawner'
+          # batchspawner-singleuser must exist inside container
+          # https://github.com/jupyterhub/batchspawner/issues/226
+          'req_prologue': 'pip install batchspawner==1.1'
         }
 
     # contruct the child spawner
