@@ -67,14 +67,14 @@ class PyxisFormSpawner(wrapspawner.WrapSpawner):
             opts.append('<option value={}>{}</option>'.format(l,l))
         return """
         <div class="form-group">
-            <label for="cores">Cores: . . . range: 1 ~ 32</label>
+            <label for="cores">Cores:</label>
             <input type="number" name="cores" class="form-control slurm-var"
-                placeholder="1" min="1" max="32"></input>
+               min="1" max="32">1</input>
         </div>
         <div class="form-group">
-            <label for="mem">Memory (GB): . . . range: 2 ~ 120</label>
-            <input type="number" name="mem_gb" class="form-control slurm-var" 
-               placeholder="2" min="2" max="120"></input>
+            <label for="mem">Memory (GB):</label>
+            <input type="number" name="mem_gb" class="form-control slurm-var"
+               min="2" max="120">2</input>
         </div>
         <div class="form-group">
             <label for="container_image">Container Image:</label>
@@ -132,7 +132,7 @@ class PyxisFormSpawner(wrapspawner.WrapSpawner):
           'req_ngpus': options['n_gpus'],
           'req_memory': options['mem_gb']+'G',
           'req_containerimage': options['container_image'],
-          #'req_containermounts': '/raid:/raid',
+          'req_containermounts': '/raid:/raid',
           'batch_submit_cmd': 'sbatch --parsable --no-requeue',
           'req_prologue': 'pip install batchspawner'
         }
