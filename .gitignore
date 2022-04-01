@@ -1,2 +1,3 @@
 etc_jupyterhub/ssl
 **/__pycache__
+**/.ipynb_checkpoints

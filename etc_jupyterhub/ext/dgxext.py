@@ -83,7 +83,7 @@ class PyxisFormSpawner(wrapspawner.WrapSpawner):
             </select>
         </div>
         <div class='form-group'>
-            <label for='n_gpus'>GPUs</label>
+            <label for='n_gpus'>GPUs:</label>
             <select name='n_gpus' class='form-control slurm-var'>
             <option value='0'>no gpu</option>
             <option value='1'>1x A100 40GB</option>

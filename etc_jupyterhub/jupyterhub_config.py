@@ -1116,7 +1116,7 @@ c.Spawner.start_timeout = 600
 #  
 #  Defaults to an empty set, in which case no user has admin access.
 #  Default: set()
-c.Authenticator.admin_users = set(['test'])
+c.Authenticator.admin_users = set([])
 
 ## Set of usernames that are allowed to log in.
 #  
