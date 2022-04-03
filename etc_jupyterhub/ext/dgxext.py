@@ -3,7 +3,6 @@
 
 import asyncio
 import batchspawner
-import wrapspawner
 from traitlets import Integer, Unicode, Float, Dict, default, List
 
 class PyxisSpawner(batchspawner.SlurmSpawner):
@@ -48,7 +47,7 @@ echo "jupyterhub-singleuser ended gracefully"
         self.exec_prefix = temp
         return ret
 
-class PyxisFormSpawner(wrapspawner.WrapSpawner):
+class PyxisFormSpawner(PyxisSpawner):
 
     container_options = List(Unicode())
 
@@ -91,12 +90,6 @@ class PyxisFormSpawner(wrapspawner.WrapSpawner):
         </div>
         """.format(container_options="\n".join(opts))
 
-    def options_from_form(self, formdata):
-        options = {}
-        for k in formdata.keys():
-          options[k] = formdata[k][0]
-        return options
-
     def sanitize_opt_int(self, options, key, default, vmin, vmax):
         if key in options:
             if options[key].isdigit():
@@ -122,43 +115,25 @@ class PyxisFormSpawner(wrapspawner.WrapSpawner):
 
         return options
 
-    def set_child_options(self, options):
+    def set_batch_reqs(self, options):
+        self.req_nprocs = options['cores']
+        self.req_srun = ''
+        self.req_runtime = '0'
+        self.req_ngpus = options['n_gpus']
+        self.req_memory = options['mem_gb']+'G'
+        self.req_containerimage = options['container_image']
+        self.req_containermounts = '/raid:/raid'
+        self.batch_submit_cmd = 'sbatch --parsable --no-requeue'
+        # batchspawner-singleuser must exist inside container
+        # https://github.com/jupyterhub/batchspawner/issues/226
+        self.req_prologue = 'pip install batchspawner==1.1'
+
+    def options_from_form(self, formdata):
+        options = {}
+        for k in formdata.keys():
+          options[k] = formdata[k][0]
+
         options = self.sanitize_options(options)
-        self.child_class = PyxisSpawner
-        self.child_config = {
-          'req_nprocs': options['cores'],
-          'req_srun': '',
-          'req_runtime':'0',
-          'req_ngpus': options['n_gpus'],
-          'req_memory': options['mem_gb']+'G',
-          'req_containerimage': options['container_image'],
-          'req_containermounts': '/raid:/raid',
-          'batch_submit_cmd': 'sbatch --parsable --no-requeue',
-          # batchspawner-singleuser must exist inside container
-          # https://github.com/jupyterhub/batchspawner/issues/226
-          'req_prologue': 'pip install batchspawner==1.1'
-        }
-
-    # contruct the child spawner
-    def construct_child(self):
-        self.child_options = self.user_options
-        self.set_child_options(self.child_options)
-        super().construct_child()
-
-    # load child state
-    def load_child_class(self, state):
-        try:
-            self.child_options = state['options']
-        except KeyError:
-            self.child_options = {}
-        self.set_child_options(self.child_options)
-
-    def get_state(self):
-        state = super().get_state()
-        state['options'] = self.child_options
-        return state
-
-    def clear_state(self):
-       super().clear_state()
-       self.child_options = {}
+        self.set_batch_reqs(options)
+        return options
 
