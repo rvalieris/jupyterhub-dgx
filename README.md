@@ -1,58 +1,22 @@
 
 
-## Install
+## jupyterhub-dgx
 
-0. Requirements
+jupyterhub for DGX systems with slurm
 
-- [deepops](https://github.com/NVIDIA/deepops/) >= 22.01
+### Requirements
+
+- [deepops](https://github.com/NVIDIA/deepops/) >= 22.01, with Slurm
 - [pyxis](https://github.com/NVIDIA/pyxis) >= 0.12.0
 
-1. systemd service
+### Install with Ansible
 
-```
-cp jupyterhub-dgx.service /etc/systemd/system/
-systemctl daemon-reload
-```
+`ansible-playbook install.playbook.yaml --become`
 
-2. config files
+### Install manually
 
-```
-mkdir /etc/jupyterhub
-cp -r etc_jupyterhub/* /etc/jupyterhub/
-```
+see [INSTALL.md](INSTALL.md)
 
-3. SSL keys
+### Configuration
 
-```
-mkdir /etc/jupyterhub/ssl
-
-# only accessible by root
-chmod 700 /etc/jupyterhub/ssl
-
-# creates a self-signed certificate
-openssl req -x509 -newkey rsa:4096 -keyout /etc/jupyterhub/ssl/key.pem -out /etc/jupyterhub/ssl/cert.pem -sha256 -nodes
-```
-
-4. enable and start service
-
-```
-# enable to run on boot
-systemctl enable jupyterhub-dgx
-
-# start, the first run will take longer
-# because it is building the image
-systemctl start jupyterhub-dgx
-```
-
-5. check status
-
-```
-systemctl status jupyterhub-dgx
-
-# logs
-journalctl -u jupyterhub-dgx
-
-# webpage
-https://<ip-or-domain>:8000
-```
-
+see [config.md](config.md)

@@ -1,0 +1,45 @@
+- name: install jupyterhub-dgx
+  hosts: localhost
+
+  tasks:
+  - name: systemd service
+    ansible.builtin.copy:
+      src: jupyterhub-dgx.service
+      dest: /etc/systemd/system/
+      mode: '0644'
+
+  - name: config files
+    ansible.builtin.copy:
+      src: etc_jupyterhub/
+      dest: /etc/jupyterhub/
+      mode: '0644'
+
+  - name: SSL directory
+    ansible.builtin.file:
+      path: /etc/jupyterhub/ssl
+      state: directory
+      mode: '0700'
+
+  - name: SSL key
+    openssl_privatekey:
+      path: /etc/jupyterhub/ssl/key.pem
+
+  - name: SSL CSR
+    openssl_csr:
+      path: /etc/jupyterhub/ssl/key.csr
+      privatekey_path: /etc/jupyterhub/ssl/key.pem
+      common_name: jupyterhub-dgx
+
+  - name: SSL certificate
+    openssl_certificate:
+      path: /etc/jupyterhub/ssl/cert.pem
+      privatekey_path: /etc/jupyterhub/ssl/key.pem
+      csr_path: /etc/jupyterhub/ssl/key.csr
+      provider: selfsigned
+
+  - name: enable and start service
+    ansible.builtin.systemd:
+      name: jupyterhub-dgx
+      daemon_reload: true
+      enabled: true
+      state: started
