@@ -55,9 +55,12 @@ class PyxisFormSpawner(PyxisSpawner):
     def _default_container_options(self):
         opts = []
         for l in open("/etc/jupyterhub/container_whitelist.tsv"):
-            v1, v2, v3 = l.rstrip().split("\t")
-            txt = v1+"#"+v2+":"+v3
-            opts.append(txt)
+            if l.startswith('/'): # local image
+                opts.append(l.rstrip())
+            else: # remote image
+                v1, v2, v3 = l.rstrip().split("\t")
+                txt = v1+"#"+v2+":"+v3
+                opts.append(txt)
         return opts
 
     def _options_form_default(self):
